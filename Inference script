@@ -1,0 +1,48 @@
+## inference_script 
+import cv2
+import numpy as np
+from ultralytics import YOLO
+
+def run_inference(image_path, model_path='best.pt', conf_threshold=0.4):
+    # Load model
+    model = YOLO(model_path)
+    
+    # Run inference
+    results = model(image_path, conf=conf_threshold)
+    
+    # Process results
+    for r in results:
+        # Visualize results
+        im_array = r.plot()
+        im = cv2.cvtColor(im_array, cv2.COLOR_BGR2RGB)
+        
+        # Display
+        cv2.imshow('Detection', im_array)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
+        # Print detection info
+        for i, box in enumerate(r.boxes):
+            class_id = int(box.cls)
+            class_name = model.names[class_id]
+            conf = box.conf.item()
+            print(f"Detected {class_name} with confidence {conf:.2f}")
+            
+            if r.masks:
+                mask = r.masks.data[i].cpu().numpy()
+                print(f"Object shape: {'Round' if np.mean(mask) > 0.5 else 'Irregular'}")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        run_inference(sys.argv[1])
+    else:
+        print("Please provide an image path as argument")
+"""
+
+with open('dry_fruits_inference.py', 'w') as f:
+    f.write(inference_script)
+
+print("Inference script saved to dry_fruits_inference.py")
+
+
